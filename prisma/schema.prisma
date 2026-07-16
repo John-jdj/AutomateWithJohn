@@ -1,0 +1,15 @@
+// Prisma schema for AutomateWithJohn.
+// No models yet — data model design happens in BUILD_PLAN.md Phase 1,
+// reviewed before the first migration is run.
+//
+// Prisma 7 moved the connection URL out of this file and into
+// prisma.config.ts — see that file for DATABASE_URL wiring.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
