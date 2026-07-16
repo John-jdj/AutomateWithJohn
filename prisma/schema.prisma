@@ -1,6 +1,6 @@
 // Prisma schema for AutomateWithJohn.
-// No models yet — data model design happens in BUILD_PLAN.md Phase 1,
-// reviewed before the first migration is run.
+// Phase 1 draft — reviewed with the project owner before the first
+// migration is run (BUILD_PLAN.md Phase 1).
 //
 // Prisma 7 moved the connection URL out of this file and into
 // prisma.config.ts — see that file for DATABASE_URL wiring.
@@ -12,4 +12,337 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// --- Users & auth ---------------------------------------------------
+
+enum Role {
+  ADMIN
+  CLIENT
+}
+
+model User {
+  id        String   @id @default(cuid())
+  authId    String   @unique // Supabase auth.users.id
+  email     String   @unique
+  name      String?
+  image     String?
+  role      Role     @default(CLIENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client        Client?
+  blogPosts     BlogPost[]
+  tasksAssigned Task[]        @relation("TaskAssignee")
+  meetingNotes  MeetingNote[]
+
+  @@map("users")
+}
+
+// --- CRM: messages, leads, clients, pipeline -------------------------
+
+enum MessageStatus {
+  NEW
+  READ
+  REPLIED
+  ARCHIVED
+}
+
+// Raw inbound submissions (contact form, newsletter signup). Distinct
+// from Lead: a message is unqualified until an admin converts it.
+model ContactMessage {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  content   String
+  source    String // "contact_form" | "consultation_booking" | "newsletter"
+  status    MessageStatus @default(NEW)
+  createdAt DateTime      @default(now())
+
+  convertedToLead Lead?
+
+  @@map("contact_messages")
+}
+
+enum PipelineStage {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL_SENT
+  NEGOTIATION
+  WON
+  LOST
+}
+
+model Lead {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  company   String?
+  notes     String?
+  stage     PipelineStage @default(NEW)
+  source    String? // "referral" | "contact_message" | "manual" | ...
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  sourceMessage   ContactMessage? @relation(fields: [sourceMessageId], references: [id])
+  sourceMessageId String?         @unique
+
+  convertedClient Client?
+
+  @@map("leads")
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  company   String?
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+
+  convertedFromLead   Lead?   @relation(fields: [convertedFromLeadId], references: [id])
+  convertedFromLeadId String? @unique
+
+  projects     Project[]
+  invoices     Invoice[]
+  tasks        Task[]
+  meetingNotes MeetingNote[]
+  testimonials Testimonial[]
+
+  @@map("clients")
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  client   Client @relation(fields: [clientId], references: [id])
+  clientId String
+
+  assignedTo   User?   @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  assignedToId String?
+
+  @@map("tasks")
+}
+
+model MeetingNote {
+  id          String   @id @default(cuid())
+  title       String
+  notes       String
+  meetingDate DateTime
+  createdAt   DateTime @default(now())
+
+  client   Client @relation(fields: [clientId], references: [id])
+  clientId String
+
+  createdBy   User   @relation(fields: [createdById], references: [id])
+  createdById String
+
+  @@map("meeting_notes")
+}
+
+// --- Portfolio ---------------------------------------------------------
+
+model Project {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  summary     String
+  description String
+  images      String[]
+  videoUrl    String?
+  techStack   String[]
+  category    String
+  githubUrl   String?
+  liveUrl     String?
+  featured    Boolean   @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  client   Client? @relation(fields: [clientId], references: [id])
+  clientId String?
+
+  caseStudy    CaseStudy?
+  testimonials Testimonial[]
+  invoices     Invoice[]
+
+  @@map("projects")
+}
+
+model CaseStudy {
+  id        String   @id @default(cuid())
+  challenge String
+  solution  String
+  results   String
+  metrics   Json? // e.g. { "conversionLift": "34%" }
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id])
+  projectId String  @unique
+
+  @@map("case_studies")
+}
+
+// --- Blog CMS ------------------------------------------------------
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model BlogPost {
+  id             String     @id @default(cuid())
+  title          String
+  slug           String     @unique
+  excerpt        String
+  content        String
+  coverImage     String?
+  tags           String[]
+  category       String?
+  status         PostStatus @default(DRAFT)
+  seoTitle       String?
+  seoDescription String?
+  publishedAt    DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  author   User   @relation(fields: [authorId], references: [id])
+  authorId String
+
+  comments Comment[]
+
+  @@map("blog_posts")
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  SPAM
+}
+
+model Comment {
+  id          String        @id @default(cuid())
+  authorName  String
+  authorEmail String
+  content     String
+  status      CommentStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+
+  post   BlogPost @relation(fields: [postId], references: [id])
+  postId String
+
+  @@map("comments")
+}
+
+// --- Services, testimonials, pricing --------------------------------
+
+model Service {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String
+  icon        String?
+  features    String[]
+  priceFrom   Decimal? @db.Decimal(10, 2)
+  category    String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("services")
+}
+
+model Testimonial {
+  id         String   @id @default(cuid())
+  clientName String
+  clientRole String?
+  company    String?
+  avatar     String?
+  content    String
+  rating     Int      @default(5)
+  featured   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  client   Client? @relation(fields: [clientId], references: [id])
+  clientId String?
+
+  project   Project? @relation(fields: [projectId], references: [id])
+  projectId String?
+
+  @@map("testimonials")
+}
+
+// --- Invoicing & payments -------------------------------------------
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+model Invoice {
+  id        String        @id @default(cuid())
+  number    String        @unique
+  amount    Decimal       @db.Decimal(10, 2)
+  currency  String        @default("INR")
+  status    InvoiceStatus @default(DRAFT)
+  dueDate   DateTime?
+  items     Json // [{ description, quantity, unitPrice }]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  client   Client @relation(fields: [clientId], references: [id])
+  clientId String
+
+  project   Project? @relation(fields: [projectId], references: [id])
+  projectId String?
+
+  payments Payment[]
+
+  @@map("invoices")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  amount            Decimal       @db.Decimal(10, 2)
+  currency          String        @default("INR")
+  status            PaymentStatus @default(PENDING)
+  method            String?
+  razorpayOrderId   String?
+  razorpayPaymentId String?       @unique
+  createdAt         DateTime      @default(now())
+
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+  invoiceId String
+
+  @@map("payments")
 }
