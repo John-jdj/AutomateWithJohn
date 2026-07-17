@@ -1,0 +1,40 @@
+"use client";
+
+import { useActionState } from "react";
+import { resetPassword } from "@/app/(auth)/actions";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { SubmitButton } from "@/components/auth/SubmitButton";
+
+export function ResetPasswordForm() {
+  const [state, formAction] = useActionState(resetPassword, undefined);
+
+  return (
+    <form action={formAction} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="password">New password</Label>
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          minLength={8}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword">Confirm new password</Label>
+        <Input
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          autoComplete="new-password"
+          minLength={8}
+          required
+        />
+      </div>
+      {state?.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
+      <SubmitButton>Update password</SubmitButton>
+    </form>
+  );
+}

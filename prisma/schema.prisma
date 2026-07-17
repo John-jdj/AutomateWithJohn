@@ -4,6 +4,13 @@
 //
 // Prisma 7 moved the connection URL out of this file and into
 // prisma.config.ts — see that file for DATABASE_URL wiring.
+//
+// Use `prisma migrate deploy`, not `migrate dev`, for every migration in
+// this project. `migrate dev` diffs against a temporary shadow database
+// that lacks Supabase's `auth` schema, so any migration referencing
+// `auth.uid()` (RLS policies) fails shadow-db validation even though it
+// would apply fine to the real database. `migrate dev --create-only` is
+// still fine for drafting migration SQL by hand before applying it.
 
 generator client {
   provider = "prisma-client"
