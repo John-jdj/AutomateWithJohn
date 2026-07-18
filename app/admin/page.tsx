@@ -14,6 +14,11 @@ export default function AdminPlaceholderPage() {
             Blog
           </Link>
         </li>
+        <li>
+          <Link href="/admin/portfolio" className="underline">
+            Portfolio
+          </Link>
+        </li>
       </ul>
     </div>
   );
