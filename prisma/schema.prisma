@@ -255,7 +255,7 @@ model Comment {
   status      CommentStatus @default(PENDING)
   createdAt   DateTime      @default(now())
 
-  post   BlogPost @relation(fields: [postId], references: [id])
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId String
 
   @@map("comments")

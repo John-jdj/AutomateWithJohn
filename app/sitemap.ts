@@ -20,10 +20,16 @@ const staticRoutes = [
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const projects = await prisma.project.findMany({
-    where: { publishedAt: { not: null } },
-    select: { slug: true, updatedAt: true },
-  });
+  const [projects, posts] = await Promise.all([
+    prisma.project.findMany({
+      where: { publishedAt: { not: null } },
+      select: { slug: true, updatedAt: true },
+    }),
+    prisma.blogPost.findMany({
+      where: { status: "PUBLISHED" },
+      select: { slug: true, updatedAt: true },
+    }),
+  ]);
 
   return [
     ...staticRoutes.map((route) => ({
@@ -37,6 +43,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: project.updatedAt,
       changeFrequency: "monthly" as const,
       priority: 0.6,
+    })),
+    ...posts.map((post) => ({
+      url: `${siteUrl}/blog/${post.slug}`,
+      lastModified: post.updatedAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
     })),
   ];
 }
