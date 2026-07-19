@@ -8,15 +8,19 @@ import type { NextConfig } from "next";
 // for Tailwind/base-ui inline style attributes. checkout.razorpay.com is
 // allowlisted because PayInvoiceButton loads it as a real external script.
 // google.com/gstatic.com are allowlisted for reCAPTCHA v3 (components/forms/Recaptcha.tsx).
+// googletagmanager.com/google-analytics.com (GA4) and clarity.ms (Microsoft
+// Clarity) are allowlisted for Phase 13's analytics wiring — both no-op
+// until their env vars are set, but the CSP needs to be correct for when
+// they are (components/analytics/*).
 const isDev = process.env.NODE_ENV === "development";
 
 const cspHeader = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/${isDev ? " 'unsafe-eval'" : ""};
+  script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://www.googletagmanager.com https://www.clarity.ms${isDev ? " 'unsafe-eval'" : ""};
   style-src 'self' 'unsafe-inline';
   img-src 'self' data: blob: https://*.supabase.co;
   font-src 'self' data:;
-  connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.razorpay.com https://checkout.razorpay.com https://www.google.com/recaptcha/;
+  connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.razorpay.com https://checkout.razorpay.com https://www.google.com/recaptcha/ https://*.google-analytics.com https://*.analytics.google.com https://*.clarity.ms;
   frame-src 'self' https://checkout.razorpay.com https://api.razorpay.com https://www.google.com/recaptcha/;
   object-src 'none';
   base-uri 'self';

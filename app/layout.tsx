@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ChatWidget } from "@/components/chatbot/ChatWidget";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { Clarity } from "@/components/analytics/Clarity";
 import { defaultDescription, siteName, siteUrl } from "@/lib/seo";
 
 const geistSans = Geist({
@@ -33,6 +35,9 @@ export const metadata: Metadata = {
     title: siteName,
     description: defaultDescription,
   },
+  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+    : undefined,
 };
 
 export default function RootLayout({
@@ -74,6 +79,8 @@ export default function RootLayout({
           <Footer />
           <ChatWidget />
         </ThemeProvider>
+        <GoogleAnalytics />
+        <Clarity />
       </body>
     </html>
   );
