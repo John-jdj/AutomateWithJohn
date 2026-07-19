@@ -2,6 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getSupabaseAdminClient } from "@/lib/supabase/admin";
+import { resend, fromEmail } from "@/lib/resend";
+import { welcomeEmail } from "@/lib/emails/welcome";
+import { passwordResetEmail } from "@/lib/emails/password-reset";
 import {
   forgotPasswordSchema,
   loginSchema,
@@ -54,6 +58,11 @@ export async function signup(_prev: ActionResult, formData: FormData): Promise<A
     return { error: error.message };
   }
 
+  if (resend) {
+    const { subject, html, text } = welcomeEmail(parsed.data.name);
+    await resend.emails.send({ from: fromEmail, to: parsed.data.email, subject, html, text });
+  }
+
   redirect("/login?checkEmail=1");
 }
 
@@ -72,12 +81,32 @@ export async function forgotPassword(
     return { error: parsed.error.issues[0].message };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/reset-password`,
-  });
-  if (error) {
-    return { error: error.message };
+  // Generate the reset link via the admin API rather than
+  // resetPasswordForEmail() so we can send it ourselves through Resend
+  // instead of Supabase's built-in email sender. generateLink() errors if
+  // the email doesn't exist — deliberately swallowed below so this action
+  // doesn't reveal whether an account exists (matches the generic
+  // "if an account exists…" copy already on /forgot-password).
+  if (resend) {
+    const adminClient = getSupabaseAdminClient();
+    const { data, error } = await adminClient.auth.admin.generateLink({
+      type: "recovery",
+      email: parsed.data.email,
+      options: {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/reset-password`,
+      },
+    });
+    if (!error && data.properties?.action_link) {
+      const { subject, html, text } = passwordResetEmail(data.properties.action_link);
+      await resend.emails.send({ from: fromEmail, to: parsed.data.email, subject, html, text });
+    }
+  } else {
+    // Guarded fallback: no RESEND_API_KEY configured, so use Supabase's
+    // own built-in reset email instead of silently sending nothing.
+    const supabase = await createClient();
+    await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/reset-password`,
+    });
   }
 
   redirect("/forgot-password?sent=1");

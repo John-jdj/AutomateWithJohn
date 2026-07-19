@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { resend, fromEmail } from "@/lib/resend";
 import { verifyRecaptcha } from "@/lib/recaptcha";
 import { contactSchema, type ContactInput } from "@/lib/validations/contact";
+import { contactNotificationEmail, contactConfirmationEmail } from "@/lib/emails/contact";
 
 export type ContactActionResult = { ok: true } | { ok: false; error: string };
 
@@ -30,12 +31,23 @@ export async function submitContactForm(input: ContactInput): Promise<ContactAct
   });
 
   if (resend) {
+    const notification = contactNotificationEmail(message);
     await resend.emails.send({
       from: fromEmail,
       to: fromEmail,
       replyTo: message.email,
-      subject: `New contact form submission from ${message.name}`,
-      text: `${message.name} <${message.email}>\n${message.phone ?? ""}\n\n${message.content}`,
+      subject: notification.subject,
+      html: notification.html,
+      text: notification.text,
+    });
+
+    const confirmation = contactConfirmationEmail(message.name);
+    await resend.emails.send({
+      from: fromEmail,
+      to: message.email,
+      subject: confirmation.subject,
+      html: confirmation.html,
+      text: confirmation.text,
     });
   }
 

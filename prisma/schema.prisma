@@ -369,3 +369,14 @@ model Settings {
 
   @@map("settings")
 }
+
+// --- Newsletter --------------------------------------------------------
+
+model NewsletterSubscriber {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  subscribedAt   DateTime  @default(now())
+  unsubscribedAt DateTime?
+
+  @@map("newsletter_subscribers")
+}

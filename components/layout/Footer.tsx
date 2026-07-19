@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/section";
 import { mainNav } from "@/lib/data/nav";
+import { NewsletterSignupForm } from "@/components/layout/NewsletterSignupForm";
 
 const secondaryNav = [
   { label: "Pricing", href: "/pricing" },
@@ -19,14 +20,17 @@ const legalNav = [
 export function Footer() {
   return (
     <footer className="border-t border-border/60">
-      <Container className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
-        <div>
+      <Container className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="lg:col-span-2">
           <Link href="/" className="text-base font-semibold tracking-tight">
             AutomateWithJohn
           </Link>
           <p className="mt-2 text-sm text-muted-foreground">
             Web development agency — sites, dashboards, and automation.
           </p>
+          <div className="mt-4 max-w-xs">
+            <NewsletterSignupForm />
+          </div>
         </div>
 
         <nav className="flex flex-col gap-2">

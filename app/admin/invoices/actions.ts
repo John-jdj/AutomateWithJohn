@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { resend, fromEmail } from "@/lib/resend";
+import { invoiceEmail } from "@/lib/emails/invoice";
 import { invoiceSchema, type InvoiceInput } from "@/lib/validations/invoices";
 
 export type InvoiceActionResult = { ok: true; id?: string } | { ok: false; error: string };
@@ -85,7 +87,25 @@ export async function setInvoiceStatus(
   status: "DRAFT" | "SENT" | "CANCELLED",
 ): Promise<void> {
   await requireAdmin();
-  await prisma.invoice.update({ where: { id }, data: { status } });
+  const existing = await prisma.invoice.findUniqueOrThrow({ where: { id } });
+
+  const invoice = await prisma.invoice.update({
+    where: { id },
+    data: { status },
+    include: { client: { include: { user: { select: { name: true, email: true } } } } },
+  });
+
+  if (resend && existing.status !== "SENT" && status === "SENT") {
+    const { subject, html, text } = invoiceEmail({
+      clientName: invoice.client.company || invoice.client.user.name || invoice.client.user.email,
+      invoiceNumber: invoice.number,
+      amount: Number(invoice.amount),
+      currency: invoice.currency,
+      invoiceId: invoice.id,
+    });
+    await resend.emails.send({ from: fromEmail, to: invoice.client.user.email, subject, html, text });
+  }
+
   revalidatePath("/admin/invoices");
   revalidatePath(`/admin/invoices/${id}`);
 }

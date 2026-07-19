@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { resend, fromEmail } from "@/lib/resend";
 import { verifyRecaptcha } from "@/lib/recaptcha";
 import { consultationSchema, type ConsultationInput } from "@/lib/validations/contact";
+import { quoteRequestNotificationEmail, quoteRequestConfirmationEmail } from "@/lib/emails/quote";
 
 export type ConsultationActionResult = { ok: true } | { ok: false; error: string };
 
@@ -34,12 +35,23 @@ export async function submitConsultationRequest(
   });
 
   if (resend) {
+    const notification = quoteRequestNotificationEmail({ ...message, topic: parsed.data.topic });
     await resend.emails.send({
       from: fromEmail,
       to: fromEmail,
       replyTo: message.email,
-      subject: `New consultation request from ${message.name}`,
-      text: `${message.name} <${message.email}>\n${message.phone ?? ""}\nTopic: ${parsed.data.topic}\n\n${message.content}`,
+      subject: notification.subject,
+      html: notification.html,
+      text: notification.text,
+    });
+
+    const confirmation = quoteRequestConfirmationEmail(message.name, parsed.data.topic);
+    await resend.emails.send({
+      from: fromEmail,
+      to: message.email,
+      subject: confirmation.subject,
+      html: confirmation.html,
+      text: confirmation.text,
     });
   }
 
