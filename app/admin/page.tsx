@@ -6,7 +6,7 @@ import {
   LeadsOverTimeChart,
 } from "@/components/admin/AnalyticsCharts";
 
-function StatTile({ label, value }: { label: string; value: number }) {
+function StatTile({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-lg border border-border/60 p-4">
       <p className="text-sm text-muted-foreground">{label}</p>
@@ -37,6 +37,8 @@ export default async function AdminAnalyticsPage() {
     leadsByStage,
     messagesByStatus,
     recentLeads,
+    successfulPayments,
+    pendingInvoices,
   ] = await Promise.all([
     prisma.lead.count(),
     prisma.contactMessage.count({ where: { status: "NEW" } }),
@@ -50,7 +52,11 @@ export default async function AdminAnalyticsPage() {
       where: { createdAt: { gte: sixMonthsAgo } },
       select: { createdAt: true },
     }),
+    prisma.payment.findMany({ where: { status: "SUCCESS" }, select: { amount: true } }),
+    prisma.invoice.count({ where: { status: "SENT" } }),
   ]);
+
+  const totalRevenue = successfulPayments.reduce((sum, p) => sum + Number(p.amount), 0);
 
   const stageOrder = ["NEW", "CONTACTED", "QUALIFIED", "PROPOSAL_SENT", "NEGOTIATION", "WON", "LOST"];
   const leadsByStageData = stageOrder
@@ -85,13 +91,15 @@ export default async function AdminAnalyticsPage() {
     <div className="p-8">
       <h1 className="text-2xl font-semibold">Analytics</h1>
 
-      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatTile label="Total leads" value={totalLeads} />
         <StatTile label="New messages" value={newMessages} />
         <StatTile label="Published projects" value={publishedProjects} />
         <StatTile label="Published posts" value={publishedPosts} />
         <StatTile label="Pending comments" value={pendingComments} />
         <StatTile label="Clients" value={totalClients} />
+        <StatTile label="Revenue collected" value={`₹${totalRevenue.toFixed(2)}`} />
+        <StatTile label="Unpaid invoices" value={pendingInvoices} />
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">

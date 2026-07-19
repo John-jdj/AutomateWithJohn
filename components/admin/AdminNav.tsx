@@ -15,6 +15,7 @@ import {
   Images,
   UserCog,
   Settings,
+  Receipt,
 } from "lucide-react";
 
 const navItems = [
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/admin/clients", label: "Clients", icon: Users },
   { href: "/admin/leads", label: "Leads", icon: Contact },
   { href: "/admin/messages", label: "Messages", icon: Mail },
+  { href: "/admin/invoices", label: "Invoices", icon: Receipt },
   { href: "/admin/blog", label: "Blogs", icon: Newspaper },
   { href: "/admin/testimonials", label: "Testimonials", icon: Star },
   { href: "/admin/media", label: "Media", icon: Images },

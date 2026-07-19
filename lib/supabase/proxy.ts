@@ -1,7 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIX = "/admin";
+const ADMIN_PREFIX = "/admin";
+const PORTAL_PREFIX = "/portal";
 const AUTH_PAGES = ["/login", "/signup", "/forgot-password", "/reset-password"];
 
 export async function updateSession(request: NextRequest) {
@@ -31,7 +32,9 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const isProtected = pathname.startsWith(PROTECTED_PREFIX);
+  const isAdminRoute = pathname.startsWith(ADMIN_PREFIX);
+  const isPortalRoute = pathname.startsWith(PORTAL_PREFIX);
+  const isProtected = isAdminRoute || isPortalRoute;
   const isAuthPage = AUTH_PAGES.some((page) => pathname.startsWith(page));
 
   if (!user && isProtected) {
@@ -47,7 +50,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && isProtected) {
+  if (user && isAdminRoute) {
     const { data: dbUser } = await supabase
       .from("users")
       .select("role")
@@ -55,6 +58,24 @@ export async function updateSession(request: NextRequest) {
       .single();
 
     if (dbUser?.role !== "ADMIN") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/unauthorized";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  if (user && isPortalRoute) {
+    const { data: dbUser } = await supabase
+      .from("users")
+      .select("id")
+      .eq("authId", user.id)
+      .single();
+
+    const { data: client } = dbUser
+      ? await supabase.from("clients").select("id").eq("userId", dbUser.id).single()
+      : { data: null };
+
+    if (!client) {
       const url = request.nextUrl.clone();
       url.pathname = "/unauthorized";
       return NextResponse.redirect(url);
