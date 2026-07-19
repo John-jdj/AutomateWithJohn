@@ -61,19 +61,13 @@ export function ProjectForm({
 
   async function submit(input: ProjectInput) {
     setServerError(null);
-    try {
-      const result = await onSubmit(input);
-      console.log("DEBUG submit result", JSON.stringify(result));
-      if (result && !result.ok) {
-        setServerError(result.error);
-        return;
-      }
-      router.push("/admin/portfolio");
-      router.refresh();
-    } catch (e) {
-      console.log("DEBUG submit threw", String(e));
-      throw e;
+    const result = await onSubmit(input);
+    if (result && !result.ok) {
+      setServerError(result.error);
+      return;
     }
+    router.push("/admin/portfolio");
+    router.refresh();
   }
 
   return (
