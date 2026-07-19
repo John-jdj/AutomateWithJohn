@@ -5,7 +5,10 @@ import { MessageRowActions } from "@/components/admin/MessageRowActions";
 
 export default async function AdminMessagesPage() {
   await requireAdmin();
-  const messages = await prisma.contactMessage.findMany({ orderBy: { createdAt: "desc" } });
+  const messages = await prisma.contactMessage.findMany({
+    orderBy: { createdAt: "desc" },
+    include: { convertedToLead: { select: { id: true } } },
+  });
 
   return (
     <div className="p-8">
@@ -30,7 +33,11 @@ export default async function AdminMessagesPage() {
                     {message.source}
                   </p>
                 </div>
-                <MessageRowActions id={message.id} status={message.status} />
+                <MessageRowActions
+                  id={message.id}
+                  status={message.status}
+                  alreadyConverted={Boolean(message.convertedToLead)}
+                />
               </div>
               {message.subject ? (
                 <p className="mt-3 text-sm font-medium">{message.subject}</p>

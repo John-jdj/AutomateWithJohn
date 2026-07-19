@@ -2,18 +2,17 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { setLeadStage, deleteLead, convertLeadToClient } from "@/app/admin/leads/actions";
+import { pipelineStages, type PipelineStageValue } from "@/lib/validations/leads";
 import { Button } from "@/components/ui/button";
-import { deleteMessage, setMessageStatus, convertMessageToLead } from "@/app/admin/messages/actions";
 
-const statuses = ["NEW", "READ", "REPLIED", "ARCHIVED"] as const;
-
-export function MessageRowActions({
+export function LeadStageControl({
   id,
-  status,
+  stage,
   alreadyConverted,
 }: {
   id: string;
-  status: (typeof statuses)[number];
+  stage: PipelineStageValue;
   alreadyConverted: boolean;
 }) {
   const router = useRouter();
@@ -21,37 +20,41 @@ export function MessageRowActions({
   const [error, setError] = useState<string | null>(null);
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col items-end gap-2">
       <div className="flex flex-wrap items-center gap-2">
         <select
-          value={status}
-          disabled={isPending}
+          value={stage}
+          disabled={isPending || alreadyConverted}
           onChange={(e) =>
             startTransition(async () => {
-              await setMessageStatus(id, e.target.value as (typeof statuses)[number]);
+              await setLeadStage(id, e.target.value as PipelineStageValue);
               router.refresh();
             })
           }
-          className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none dark:bg-input/30"
+          className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none disabled:opacity-50 dark:bg-input/30"
         >
-          {statuses.map((s) => (
+          {pipelineStages.map((s) => (
             <option key={s} value={s}>
               {s}
             </option>
           ))}
         </select>
-        {alreadyConverted ? (
-          <span className="text-xs text-muted-foreground">Converted to lead</span>
-        ) : (
+
+        {alreadyConverted ? null : (
           <Button
             type="button"
-            variant="outline"
             size="sm"
             disabled={isPending}
             onClick={() => {
+              if (
+                !confirm(
+                  "Convert this lead into a client account? This invites them by email if they don't already have an account.",
+                )
+              )
+                return;
               setError(null);
               startTransition(async () => {
-                const result = await convertMessageToLead(id);
+                const result = await convertLeadToClient(id);
                 if (!result.ok) {
                   setError(result.error);
                   return;
@@ -60,19 +63,21 @@ export function MessageRowActions({
               });
             }}
           >
-            Convert to lead
+            Convert to client
           </Button>
         )}
+
         <Button
           type="button"
           variant="destructive"
           size="sm"
           disabled={isPending}
           onClick={() => {
-            if (!confirm("Delete this message? This can't be undone.")) return;
+            if (!confirm("Delete this lead? This can't be undone.")) return;
             startTransition(async () => {
-              await deleteMessage(id);
+              await deleteLead(id);
               router.refresh();
+              router.push("/admin/leads");
             });
           }}
         >
@@ -80,6 +85,9 @@ export function MessageRowActions({
         </Button>
       </div>
       {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {alreadyConverted ? (
+        <p className="text-xs text-muted-foreground">Already converted to a client.</p>
+      ) : null}
     </div>
   );
 }

@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
+import { TaskSection } from "@/components/admin/TaskSection";
+import { MeetingNoteSection } from "@/components/admin/MeetingNoteSection";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -13,9 +15,17 @@ export default async function AdminClientDetailPage({ params }: Props) {
     where: { id },
     include: {
       user: { select: { name: true, email: true } },
+      convertedFromLead: { select: { id: true, name: true } },
       projects: { select: { id: true, title: true, slug: true, publishedAt: true } },
       invoices: { select: { id: true, number: true, amount: true, status: true } },
-      tasks: { select: { id: true, title: true, status: true } },
+      tasks: {
+        select: { id: true, title: true, description: true, status: true, dueDate: true },
+        orderBy: { createdAt: "desc" },
+      },
+      meetingNotes: {
+        select: { id: true, title: true, notes: true, meetingDate: true },
+        orderBy: { meetingDate: "desc" },
+      },
     },
   });
   if (!client) notFound();
@@ -28,8 +38,13 @@ export default async function AdminClientDetailPage({ params }: Props) {
       <p className="mt-1 text-sm text-muted-foreground">
         {client.user.email} {client.phone ? `· ${client.phone}` : ""}
       </p>
+      {client.convertedFromLead ? (
+        <p className="mt-1 text-xs text-muted-foreground">
+          Converted from lead: {client.convertedFromLead.name}
+        </p>
+      ) : null}
 
-      <div className="mt-8 grid gap-6 sm:grid-cols-3">
+      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <h2 className="text-sm font-medium">Projects</h2>
           <div className="mt-2 space-y-2">
@@ -66,23 +81,8 @@ export default async function AdminClientDetailPage({ params }: Props) {
           </div>
         </div>
 
-        <div>
-          <h2 className="text-sm font-medium">Tasks</h2>
-          <div className="mt-2 space-y-2">
-            {client.tasks.length === 0 ? (
-              <p className="text-sm text-muted-foreground">None</p>
-            ) : (
-              client.tasks.map((t) => (
-                <div key={t.id} className="rounded-md border border-border/60 p-2 text-sm">
-                  {t.title}
-                  <Badge variant="secondary" className="ml-2">
-                    {t.status}
-                  </Badge>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+        <TaskSection clientId={client.id} tasks={client.tasks} />
+        <MeetingNoteSection clientId={client.id} meetingNotes={client.meetingNotes} />
       </div>
     </div>
   );
