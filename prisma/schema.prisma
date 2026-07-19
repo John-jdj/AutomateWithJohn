@@ -353,3 +353,19 @@ model Payment {
 
   @@map("payments")
 }
+
+// --- Site settings ---------------------------------------------------
+
+// Singleton — enforced by convention (admin/settings actions always
+// upsert against the fixed id "singleton"), not by a DB constraint.
+model Settings {
+  id              String   @id @default(cuid())
+  siteName        String   @default("AutomateWithJohn")
+  siteDescription String?
+  contactEmail    String?
+  contactPhone    String?
+  socialLinks     Json? // { twitter, linkedin, github, instagram }
+  updatedAt       DateTime @updatedAt
+
+  @@map("settings")
+}
