@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
+import { isRateLimited } from "@/lib/rate-limit";
 import { resend, fromEmail } from "@/lib/resend";
 import { welcomeEmail } from "@/lib/emails/welcome";
 import { passwordResetEmail } from "@/lib/emails/password-reset";
@@ -24,6 +25,10 @@ export async function login(_prev: ActionResult, formData: FormData): Promise<Ac
     return { error: parsed.error.issues[0].message };
   }
 
+  if (await isRateLimited("login", { limit: 10, windowMs: 5 * 60 * 1000 })) {
+    return { error: "Too many attempts. Please try again in a few minutes." };
+  }
+
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) {
@@ -43,6 +48,10 @@ export async function signup(_prev: ActionResult, formData: FormData): Promise<A
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0].message };
+  }
+
+  if (await isRateLimited("signup", { limit: 5, windowMs: 60 * 60 * 1000 })) {
+    return { error: "Too many attempts. Please try again later." };
   }
 
   const supabase = await createClient();
@@ -79,6 +88,10 @@ export async function forgotPassword(
   const parsed = forgotPasswordSchema.safeParse({ email: formData.get("email") });
   if (!parsed.success) {
     return { error: parsed.error.issues[0].message };
+  }
+
+  if (await isRateLimited("forgot-password", { limit: 5, windowMs: 60 * 60 * 1000 })) {
+    return { error: "Too many attempts. Please try again later." };
   }
 
   // Generate the reset link via the admin API rather than

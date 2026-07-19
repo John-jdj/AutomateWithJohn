@@ -58,7 +58,7 @@ export function ConsultationForm() {
 
   if (submitted) {
     return (
-      <p className="rounded-md bg-muted p-4 text-sm">
+      <p role="status" className="rounded-md bg-muted p-4 text-sm">
         Thanks — we&apos;ve received your request and will follow up to schedule a time.
       </p>
     );
@@ -71,14 +71,31 @@ export function ConsultationForm() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
-            <Input id="name" {...register("name")} />
-            {errors.name ? <p className="text-sm text-destructive">{errors.name.message}</p> : null}
+            <Input
+              id="name"
+              aria-invalid={!!errors.name}
+              aria-describedby={errors.name ? "name-error" : undefined}
+              {...register("name")}
+            />
+            {errors.name ? (
+              <p id="name-error" role="alert" className="text-sm text-destructive">
+                {errors.name.message}
+              </p>
+            ) : null}
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" {...register("email")} />
+            <Input
+              id="email"
+              type="email"
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? "email-error" : undefined}
+              {...register("email")}
+            />
             {errors.email ? (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
+              <p id="email-error" role="alert" className="text-sm text-destructive">
+                {errors.email.message}
+              </p>
             ) : null}
           </div>
         </div>
@@ -114,16 +131,32 @@ export function ConsultationForm() {
               </Select>
             )}
           />
-          {errors.topic ? <p className="text-sm text-destructive">{errors.topic.message}</p> : null}
+          {errors.topic ? (
+            <p role="alert" className="text-sm text-destructive">
+              {errors.topic.message}
+            </p>
+          ) : null}
         </div>
         <div className="space-y-2">
           <Label htmlFor="message">What would you like to discuss?</Label>
-          <Textarea id="message" rows={5} {...register("message")} />
+          <Textarea
+            id="message"
+            rows={5}
+            aria-invalid={!!errors.message}
+            aria-describedby={errors.message ? "message-error" : undefined}
+            {...register("message")}
+          />
           {errors.message ? (
-            <p className="text-sm text-destructive">{errors.message.message}</p>
+            <p id="message-error" role="alert" className="text-sm text-destructive">
+              {errors.message.message}
+            </p>
           ) : null}
         </div>
-        {serverError ? <p className="text-sm text-destructive">{serverError}</p> : null}
+        {serverError ? (
+          <p role="alert" className="text-sm text-destructive">
+            {serverError}
+          </p>
+        ) : null}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Sending…" : "Request consultation"}
         </Button>

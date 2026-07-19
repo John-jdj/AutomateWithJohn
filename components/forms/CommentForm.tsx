@@ -35,7 +35,7 @@ export function CommentForm({ postId, postSlug }: { postId: string; postSlug: st
 
   if (submitted) {
     return (
-      <p className="rounded-md bg-muted p-4 text-sm">
+      <p role="status" className="rounded-md bg-muted p-4 text-sm">
         Thanks — your comment is awaiting moderation and will appear once approved.
       </p>
     );
@@ -48,27 +48,54 @@ export function CommentForm({ postId, postSlug }: { postId: string; postSlug: st
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="authorName">Name</Label>
-            <Input id="authorName" {...register("authorName")} />
+            <Input
+              id="authorName"
+              aria-invalid={!!errors.authorName}
+              aria-describedby={errors.authorName ? "authorName-error" : undefined}
+              {...register("authorName")}
+            />
             {errors.authorName ? (
-              <p className="text-sm text-destructive">{errors.authorName.message}</p>
+              <p id="authorName-error" role="alert" className="text-sm text-destructive">
+                {errors.authorName.message}
+              </p>
             ) : null}
           </div>
           <div className="space-y-2">
             <Label htmlFor="authorEmail">Email</Label>
-            <Input id="authorEmail" type="email" {...register("authorEmail")} />
+            <Input
+              id="authorEmail"
+              type="email"
+              aria-invalid={!!errors.authorEmail}
+              aria-describedby={errors.authorEmail ? "authorEmail-error" : undefined}
+              {...register("authorEmail")}
+            />
             {errors.authorEmail ? (
-              <p className="text-sm text-destructive">{errors.authorEmail.message}</p>
+              <p id="authorEmail-error" role="alert" className="text-sm text-destructive">
+                {errors.authorEmail.message}
+              </p>
             ) : null}
           </div>
         </div>
         <div className="space-y-2">
           <Label htmlFor="content">Comment</Label>
-          <Textarea id="content" rows={4} {...register("content")} />
+          <Textarea
+            id="content"
+            rows={4}
+            aria-invalid={!!errors.content}
+            aria-describedby={errors.content ? "content-error" : undefined}
+            {...register("content")}
+          />
           {errors.content ? (
-            <p className="text-sm text-destructive">{errors.content.message}</p>
+            <p id="content-error" role="alert" className="text-sm text-destructive">
+              {errors.content.message}
+            </p>
           ) : null}
         </div>
-        {serverError ? <p className="text-sm text-destructive">{serverError}</p> : null}
+        {serverError ? (
+          <p role="alert" className="text-sm text-destructive">
+            {serverError}
+          </p>
+        ) : null}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Posting…" : "Post comment"}
         </Button>

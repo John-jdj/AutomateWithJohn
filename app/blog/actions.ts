@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { verifyRecaptcha } from "@/lib/recaptcha";
+import { isRateLimited } from "@/lib/rate-limit";
 import { commentSchema, type CommentInput } from "@/lib/validations/blog";
 
 export type CommentActionResult = { ok: true } | { ok: false; error: string };
@@ -14,6 +15,10 @@ export async function submitComment(
 ): Promise<CommentActionResult> {
   const parsed = commentSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+
+  if (await isRateLimited("comment", { limit: 10, windowMs: 60 * 60 * 1000 })) {
+    return { ok: false, error: "Too many comments posted. Please try again later." };
+  }
 
   const humanVerified = await verifyRecaptcha(parsed.data.recaptchaToken);
   if (!humanVerified) {

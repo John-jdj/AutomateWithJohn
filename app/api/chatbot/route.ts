@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { ChatCompletionMessageParam, ChatCompletionTool } from "openai/resources/chat/completions";
 import { openai, chatbotModel } from "@/lib/openai";
 import { buildChatbotSystemPrompt } from "@/lib/chatbot/system-prompt";
+import { isRateLimited } from "@/lib/rate-limit";
 import { prisma } from "@/lib/prisma";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
@@ -52,6 +53,15 @@ function parseMessages(body: unknown): ChatMessage[] | null {
 }
 
 export async function POST(request: Request) {
+  // Rate limit before anything else — this endpoint must stay cheap to spam
+  // even when guarded (no OPENAI_API_KEY), since it still hits Postgres.
+  if (await isRateLimited("chatbot", { limit: 20, windowMs: 10 * 60 * 1000 })) {
+    return NextResponse.json(
+      { reply: "You've sent a lot of messages — please wait a bit before continuing.", leadCaptured: false },
+      { status: 429 },
+    );
+  }
+
   if (!openai) {
     return NextResponse.json({
       reply:

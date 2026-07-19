@@ -7,6 +7,7 @@ import { newsletterSchema, type NewsletterInput } from "@/lib/validations/newsle
 import { subscribeNewsletter } from "@/app/newsletter/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function NewsletterSignupForm() {
   const [state, setState] = useState<"idle" | "success" | "error">("idle");
@@ -27,26 +28,41 @@ export function NewsletterSignupForm() {
   }
 
   if (state === "success") {
-    return <p className="text-sm text-muted-foreground">You&apos;re subscribed. Thanks!</p>;
+    return (
+      <p role="status" className="text-sm text-muted-foreground">
+        You&apos;re subscribed. Thanks!
+      </p>
+    );
   }
 
   return (
     <form onSubmit={handleSubmit(submit)} className="space-y-2">
-      <p className="text-sm font-medium">Newsletter</p>
+      <Label htmlFor="newsletter-email" className="text-sm font-medium">
+        Newsletter
+      </Label>
       <div className="flex gap-2">
         <Input
+          id="newsletter-email"
           type="email"
           placeholder="you@example.com"
           className="h-8"
+          aria-invalid={!!errors.email}
+          aria-describedby={errors.email ? "newsletter-email-error" : undefined}
           {...register("email")}
         />
         <Button type="submit" size="sm" disabled={isSubmitting}>
           Subscribe
         </Button>
       </div>
-      {errors.email ? <p className="text-xs text-destructive">{errors.email.message}</p> : null}
+      {errors.email ? (
+        <p id="newsletter-email-error" role="alert" className="text-xs text-destructive">
+          {errors.email.message}
+        </p>
+      ) : null}
       {state === "error" ? (
-        <p className="text-xs text-destructive">Something went wrong. Try again.</p>
+        <p role="alert" className="text-xs text-destructive">
+          Something went wrong. Try again.
+        </p>
       ) : null}
     </form>
   );

@@ -43,7 +43,11 @@ export function SignupForm() {
             required
           />
         </div>
-        {state?.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
+        {state?.error ? (
+          <p role="alert" className="text-sm text-destructive">
+            {state.error}
+          </p>
+        ) : null}
         <SubmitButton>Create account</SubmitButton>
       </form>
 

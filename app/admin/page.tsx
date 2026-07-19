@@ -4,7 +4,7 @@ import {
   LeadsByStageChart,
   MessagesByStatusChart,
   LeadsOverTimeChart,
-} from "@/components/admin/AnalyticsCharts";
+} from "@/components/admin/AnalyticsChartsLazy";
 
 function StatTile({ label, value }: { label: string; value: number | string }) {
   return (

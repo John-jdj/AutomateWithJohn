@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/section";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { NavLink } from "@/components/layout/NavLink";
 import { mainNav } from "@/lib/data/nav";
 
 export function Navbar() {
@@ -13,15 +14,15 @@ export function Navbar() {
           AutomateWithJohn
         </Link>
 
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav aria-label="Main navigation" className="hidden items-center gap-6 md:flex">
           {mainNav.map((item) => (
-            <Link
+            <NavLink
               key={item.href}
               href={item.href}
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               {item.label}
-            </Link>
+            </NavLink>
           ))}
         </nav>
 

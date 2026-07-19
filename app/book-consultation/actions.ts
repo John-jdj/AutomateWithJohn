@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { resend, fromEmail } from "@/lib/resend";
 import { verifyRecaptcha } from "@/lib/recaptcha";
+import { isRateLimited } from "@/lib/rate-limit";
 import { consultationSchema, type ConsultationInput } from "@/lib/validations/contact";
 import { quoteRequestNotificationEmail, quoteRequestConfirmationEmail } from "@/lib/emails/quote";
 
@@ -14,6 +15,10 @@ export async function submitConsultationRequest(
   const parsed = consultationSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0].message };
+  }
+
+  if (await isRateLimited("consultation", { limit: 5, windowMs: 60 * 60 * 1000 })) {
+    return { ok: false, error: "Too many requests sent. Please try again later." };
   }
 
   const humanVerified = await verifyRecaptcha(parsed.data.recaptchaToken);

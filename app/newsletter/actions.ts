@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { resend, fromEmail } from "@/lib/resend";
+import { isRateLimited } from "@/lib/rate-limit";
 import { newsletterSchema, type NewsletterInput } from "@/lib/validations/newsletter";
 import { newsletterConfirmationEmail } from "@/lib/emails/newsletter";
 
@@ -11,6 +12,10 @@ export async function subscribeNewsletter(input: NewsletterInput): Promise<Newsl
   const parsed = newsletterSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0].message };
+  }
+
+  if (await isRateLimited("newsletter", { limit: 5, windowMs: 60 * 60 * 1000 })) {
+    return { ok: false, error: "Too many attempts. Please try again later." };
   }
 
   const existing = await prisma.newsletterSubscriber.findUnique({

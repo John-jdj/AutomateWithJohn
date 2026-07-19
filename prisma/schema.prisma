@@ -372,6 +372,14 @@ model Settings {
 
 // --- Newsletter --------------------------------------------------------
 
+model RateLimitHit {
+  key         String   @id
+  count       Int      @default(1)
+  windowStart DateTime @default(now())
+
+  @@map("rate_limit_hits")
+}
+
 model NewsletterSubscriber {
   id             String    @id @default(cuid())
   email          String    @unique

@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { resend, fromEmail } from "@/lib/resend";
 import { verifyRecaptcha } from "@/lib/recaptcha";
+import { isRateLimited } from "@/lib/rate-limit";
 import { contactSchema, type ContactInput } from "@/lib/validations/contact";
 import { contactNotificationEmail, contactConfirmationEmail } from "@/lib/emails/contact";
 
@@ -12,6 +13,10 @@ export async function submitContactForm(input: ContactInput): Promise<ContactAct
   const parsed = contactSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0].message };
+  }
+
+  if (await isRateLimited("contact", { limit: 5, windowMs: 60 * 60 * 1000 })) {
+    return { ok: false, error: "Too many messages sent. Please try again later." };
   }
 
   const humanVerified = await verifyRecaptcha(parsed.data.recaptchaToken);

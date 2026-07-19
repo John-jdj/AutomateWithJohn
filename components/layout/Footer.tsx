@@ -33,7 +33,7 @@ export function Footer() {
           </div>
         </div>
 
-        <nav className="flex flex-col gap-2">
+        <nav aria-label="Site" className="flex flex-col gap-2">
           {mainNav.map((item) => (
             <Link
               key={item.href}
@@ -45,7 +45,7 @@ export function Footer() {
           ))}
         </nav>
 
-        <nav className="flex flex-col gap-2">
+        <nav aria-label="Company" className="flex flex-col gap-2">
           {secondaryNav.map((item) => (
             <Link
               key={item.href}
@@ -57,7 +57,7 @@ export function Footer() {
           ))}
         </nav>
 
-        <nav className="flex flex-col gap-2">
+        <nav aria-label="Legal" className="flex flex-col gap-2">
           {legalNav.map((item) => (
             <Link
               key={item.href}
