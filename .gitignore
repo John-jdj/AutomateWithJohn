@@ -44,5 +44,8 @@ next-env.d.ts
 # prisma
 /lib/generated/prisma
 
+# supabase CLI local state (project link, access token cache)
+/supabase/.temp
+
 .vercel
 .env*
