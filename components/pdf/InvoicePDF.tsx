@@ -34,11 +34,8 @@ export function InvoicePDF({
     items: InvoiceItem[];
     clientName: string;
     clientEmail: string;
-    paid: number;
   };
 }) {
-  const due = invoice.amount - invoice.paid;
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -81,21 +78,9 @@ export function InvoicePDF({
 
         <View style={styles.totals}>
           <View style={styles.totalRow}>
-            <Text>Total</Text>
-            <Text>
-              {invoice.currency} {invoice.amount.toFixed(2)}
-            </Text>
-          </View>
-          <View style={styles.totalRow}>
-            <Text>Paid</Text>
-            <Text>
-              {invoice.currency} {invoice.paid.toFixed(2)}
-            </Text>
-          </View>
-          <View style={styles.totalRow}>
-            <Text style={styles.bold}>Due</Text>
+            <Text style={styles.bold}>Total</Text>
             <Text style={styles.bold}>
-              {invoice.currency} {due.toFixed(2)}
+              {invoice.currency} {invoice.amount.toFixed(2)}
             </Text>
           </View>
         </View>

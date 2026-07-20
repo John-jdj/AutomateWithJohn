@@ -3,7 +3,6 @@ import { requireClient } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PayInvoiceButton } from "@/components/portal/PayInvoiceButton";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -13,14 +12,10 @@ export default async function PortalInvoiceDetailPage({ params }: Props) {
 
   const invoice = await prisma.invoice.findUnique({
     where: { id },
-    include: { payments: { orderBy: { createdAt: "desc" } }, project: { select: { title: true } } },
+    include: { project: { select: { title: true } } },
   });
   if (!invoice || invoice.clientId !== client.id || invoice.status === "DRAFT") notFound();
 
-  const paid = invoice.payments
-    .filter((p) => p.status === "SUCCESS")
-    .reduce((sum, p) => sum + Number(p.amount), 0);
-  const due = Number(invoice.amount) - paid;
   const items = invoice.items as unknown as { description: string; quantity: number; unitPrice: number }[];
 
   return (
@@ -57,16 +52,8 @@ export default async function PortalInvoiceDetailPage({ params }: Props) {
       </div>
 
       <div className="mt-4 space-y-1 border-t border-border/60 pt-4 text-sm">
-        <p>Total: ₹{Number(invoice.amount).toFixed(2)}</p>
-        <p>Paid: ₹{paid.toFixed(2)}</p>
-        <p className="font-medium">Due: ₹{due.toFixed(2)}</p>
+        <p className="font-medium">Total: ₹{Number(invoice.amount).toFixed(2)}</p>
       </div>
-
-      {due > 0.01 && invoice.status !== "CANCELLED" ? (
-        <div className="mt-6">
-          <PayInvoiceButton invoiceId={invoice.id} invoiceNumber={invoice.number} due={due} />
-        </div>
-      ) : null}
     </div>
   );
 }

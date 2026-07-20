@@ -189,19 +189,6 @@ async function main() {
     },
   });
 
-  await prisma.payment.upsert({
-    where: { id: "seed-payment-1" },
-    update: {},
-    create: {
-      id: "seed-payment-1",
-      amount: 2500,
-      currency: "INR",
-      status: "SUCCESS",
-      method: "card",
-      invoiceId: invoice.id,
-    },
-  });
-
   console.log("Seed complete:", { lead: lead.id, invoice: invoice.number });
 }
 

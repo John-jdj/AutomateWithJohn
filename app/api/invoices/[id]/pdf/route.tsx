@@ -25,7 +25,6 @@ export async function GET(_request: Request, { params }: Props) {
     where: { id },
     include: {
       client: { include: { user: { select: { name: true, email: true } } } },
-      payments: { where: { status: "SUCCESS" } },
     },
   });
   if (!invoice) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -35,8 +34,6 @@ export async function GET(_request: Request, { params }: Props) {
   if (!isOwner && !isAdmin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
-
-  const paid = invoice.payments.reduce((sum, p) => sum + Number(p.amount), 0);
 
   const buffer = await renderToBuffer(
     <InvoicePDF
@@ -50,7 +47,6 @@ export async function GET(_request: Request, { params }: Props) {
         items: invoice.items as unknown as { description: string; quantity: number; unitPrice: number }[],
         clientName: invoice.client.company || invoice.client.user.name || invoice.client.user.email,
         clientEmail: invoice.client.user.email,
-        paid,
       }}
     />,
   );

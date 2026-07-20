@@ -56,13 +56,6 @@ export async function updateInvoice(id: string, input: InvoiceInput): Promise<In
   const parsed = invoiceSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
 
-  const existingPayment = await prisma.payment.findFirst({
-    where: { invoiceId: id, status: "SUCCESS" },
-  });
-  if (existingPayment) {
-    return { ok: false, error: "Can't edit an invoice that already has a successful payment." };
-  }
-
   const items = toNumericItems(parsed.data.items);
   const amount = computeAmount(items);
 
@@ -112,10 +105,6 @@ export async function setInvoiceStatus(
 
 export async function deleteInvoice(id: string): Promise<InvoiceActionResult> {
   await requireAdmin();
-  const payments = await prisma.payment.count({ where: { invoiceId: id } });
-  if (payments > 0) {
-    return { ok: false, error: "Can't delete an invoice with payment history." };
-  }
   await prisma.invoice.delete({ where: { id } });
   revalidatePath("/admin/invoices");
   return { ok: true };

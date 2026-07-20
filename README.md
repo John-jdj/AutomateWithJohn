@@ -8,7 +8,7 @@ Web development agency site + CMS + admin dashboard + CRM. See
 
 Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind CSS v4 ·
 shadcn/ui · Prisma · PostgreSQL (Supabase) · Supabase Auth/Storage ·
-Razorpay · Resend · Zod · React Hook Form · Recharts
+Resend · Zod · React Hook Form · Recharts
 
 ## Getting started
 

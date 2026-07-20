@@ -13,7 +13,7 @@ Don't self-chain phases even if you have context budget left.
   (explain each top-level folder's purpose in a comment or README)
 - Set up Prisma with a Postgres connection (Supabase), no schema yet
 - Git init, initial commit, `.env.example` with placeholders for every
-  planned integration (Supabase, Resend, Razorpay, GA4, Clarity, OpenAI)
+  planned integration (Supabase, Resend, GA4, Clarity, OpenAI)
 - **Stop here and confirm the folder structure before continuing.**
 
 ## Phase 1 — Data model
@@ -66,9 +66,14 @@ Don't self-chain phases even if you have context budget left.
 - Tasks, follow-ups, meeting notes, proposal status per client
 
 ## Phase 9 — Payments
-- Razorpay integration: advance payment, full payment, custom invoice
+- ~~Razorpay integration: advance payment, full payment, custom invoice~~
 - PDF invoice generation
-- Payment records visible in admin dashboard
+- ~~Payment records visible in admin dashboard~~
+
+**Update (2026-07-19):** Razorpay was built in this phase, then removed
+entirely — no payment records/gateway is currently wired in. Invoices
+(number, line items, status, PDF export) still exist and work; there is
+no in-app way to mark one paid.
 
 ## Phase 10 — Transactional email
 - Resend templates: welcome, contact, quote request, invoice,

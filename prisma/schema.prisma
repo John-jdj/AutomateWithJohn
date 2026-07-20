@@ -326,32 +326,7 @@ model Invoice {
   project   Project? @relation(fields: [projectId], references: [id])
   projectId String?
 
-  payments Payment[]
-
   @@map("invoices")
-}
-
-enum PaymentStatus {
-  PENDING
-  SUCCESS
-  FAILED
-  REFUNDED
-}
-
-model Payment {
-  id                String        @id @default(cuid())
-  amount            Decimal       @db.Decimal(10, 2)
-  currency          String        @default("INR")
-  status            PaymentStatus @default(PENDING)
-  method            String?
-  razorpayOrderId   String?
-  razorpayPaymentId String?       @unique
-  createdAt         DateTime      @default(now())
-
-  invoice   Invoice @relation(fields: [invoiceId], references: [id])
-  invoiceId String
-
-  @@map("payments")
 }
 
 // --- Site settings ---------------------------------------------------

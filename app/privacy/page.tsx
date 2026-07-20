@@ -46,9 +46,9 @@ export default function PrivacyPage() {
             <p className="mt-2 text-muted-foreground">
               We use the following third-party services, each of which processes data
               on our behalf under its own privacy policy: Supabase (authentication,
-              database, and file storage), Resend (transactional email), Razorpay
-              (payment processing), Google Analytics and Microsoft Clarity (site
-              analytics), and Vercel (hosting).
+              database, and file storage), Resend (transactional email), Google
+              Analytics and Microsoft Clarity (site analytics), and Vercel
+              (hosting).
             </p>
           </section>
 

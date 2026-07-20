@@ -17,7 +17,6 @@ export default async function PortalHomePage() {
   const invoices = await prisma.invoice.findMany({
     where: { clientId: client.id, status: { not: "DRAFT" } },
     orderBy: { createdAt: "desc" },
-    include: { payments: { where: { status: "SUCCESS" }, select: { amount: true } } },
   });
 
   return (
@@ -29,8 +28,6 @@ export default async function PortalHomePage() {
           <p className="text-sm text-muted-foreground">No invoices yet.</p>
         ) : (
           invoices.map((invoice) => {
-            const paid = invoice.payments.reduce((sum, p) => sum + Number(p.amount), 0);
-            const due = Number(invoice.amount) - paid;
             return (
               <Link
                 key={invoice.id}
@@ -46,7 +43,6 @@ export default async function PortalHomePage() {
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
                     Total ₹{Number(invoice.amount).toFixed(2)}
-                    {due > 0 ? ` · ₹${due.toFixed(2)} due` : " · fully paid"}
                   </p>
                 </div>
               </Link>

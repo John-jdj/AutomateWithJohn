@@ -2,7 +2,7 @@ import Script from "next/script";
 
 const projectId = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID;
 
-// Guarded: no-op when unconfigured, same pattern as Resend/Razorpay/OpenAI.
+// Guarded: no-op when unconfigured, same pattern as Resend/OpenAI.
 export function Clarity() {
   if (!projectId) return null;
 

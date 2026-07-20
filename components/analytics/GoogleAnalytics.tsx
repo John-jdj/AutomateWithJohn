@@ -2,7 +2,7 @@ import Script from "next/script";
 
 const measurementId = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
 
-// Guarded: no-op when unconfigured, same pattern as Resend/Razorpay/OpenAI.
+// Guarded: no-op when unconfigured, same pattern as Resend/OpenAI.
 export function GoogleAnalytics() {
   if (!measurementId) return null;
 

@@ -33,9 +33,8 @@ export default function TermsPage() {
           <section>
             <H2 className="text-xl">Payments</H2>
             <p className="mt-2 text-muted-foreground">
-              Payments are processed through Razorpay. Invoices, payment schedules,
-              and refund terms for a given project are set out in that project&apos;s
-              agreement.
+              Invoices, payment schedules, and refund terms for a given project are
+              set out in that project&apos;s agreement.
             </p>
           </section>
 

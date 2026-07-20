@@ -7,7 +7,6 @@ const SETTINGS_ID = "singleton";
 
 const integrations = [
   { label: "Resend (email)", envVar: "RESEND_API_KEY" },
-  { label: "Razorpay (payments)", envVar: "RAZORPAY_KEY_ID" },
   { label: "reCAPTCHA", envVar: "RECAPTCHA_SECRET_KEY" },
   { label: "Google Analytics 4", envVar: "NEXT_PUBLIC_GA4_MEASUREMENT_ID" },
   { label: "Microsoft Clarity", envVar: "NEXT_PUBLIC_CLARITY_PROJECT_ID" },

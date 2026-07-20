@@ -18,7 +18,6 @@ export default async function AdminInvoicesPage() {
     orderBy: { createdAt: "desc" },
     include: {
       client: { include: { user: { select: { name: true, email: true } } } },
-      payments: { where: { status: "SUCCESS" }, select: { amount: true } },
     },
   });
 
@@ -36,7 +35,6 @@ export default async function AdminInvoicesPage() {
           <p className="text-sm text-muted-foreground">No invoices yet.</p>
         ) : (
           invoices.map((invoice) => {
-            const paid = invoice.payments.reduce((sum, p) => sum + Number(p.amount), 0);
             return (
               <Link
                 key={invoice.id}
@@ -55,7 +53,6 @@ export default async function AdminInvoicesPage() {
                       invoice.client.user.name ||
                       invoice.client.user.email}{" "}
                     · ₹{Number(invoice.amount).toFixed(2)}
-                    {paid > 0 ? ` (₹${paid.toFixed(2)} paid)` : ""}
                   </p>
                 </div>
               </Link>

@@ -16,7 +16,6 @@ training-data versions are still latest)
 - Prisma ORM + PostgreSQL (Supabase)
 - Supabase Auth (email, Google, GitHub) + role-based authorization
 - Supabase Storage for media
-- Razorpay for payments
 - Resend for transactional email
 - Zod + React Hook Form for validation
 - Recharts for admin analytics

@@ -37,7 +37,6 @@ export default async function AdminAnalyticsPage() {
     leadsByStage,
     messagesByStatus,
     recentLeads,
-    successfulPayments,
     pendingInvoices,
   ] = await Promise.all([
     prisma.lead.count(),
@@ -52,11 +51,8 @@ export default async function AdminAnalyticsPage() {
       where: { createdAt: { gte: sixMonthsAgo } },
       select: { createdAt: true },
     }),
-    prisma.payment.findMany({ where: { status: "SUCCESS" }, select: { amount: true } }),
     prisma.invoice.count({ where: { status: "SENT" } }),
   ]);
-
-  const totalRevenue = successfulPayments.reduce((sum, p) => sum + Number(p.amount), 0);
 
   const stageOrder = ["NEW", "CONTACTED", "QUALIFIED", "PROPOSAL_SENT", "NEGOTIATION", "WON", "LOST"];
   const leadsByStageData = stageOrder
@@ -98,7 +94,6 @@ export default async function AdminAnalyticsPage() {
         <StatTile label="Published posts" value={publishedPosts} />
         <StatTile label="Pending comments" value={pendingComments} />
         <StatTile label="Clients" value={totalClients} />
-        <StatTile label="Revenue collected" value={`₹${totalRevenue.toFixed(2)}`} />
         <StatTile label="Unpaid invoices" value={pendingInvoices} />
       </div>
 
